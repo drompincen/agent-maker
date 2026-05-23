@@ -1,16 +1,22 @@
 # agent-maker
 
-A factory for producing portable claude-code agents.
+A factory for building and continuously improving portable [claude-code](https://docs.claude.com/claude-code) agents.
+
+You define an agent (a directory of prompts, skills, and scripts), pair it with a task that has expected outputs, and run a closed loop: one agent does the work, a second agent grades it, a third agent rewrites the first agent's source files based on the grade — repeating until quality converges. The output is a versioned, portable agent bundle that ships anywhere.
 
 ## The metaphor
 
-**agent-maker is the factory. Agents are the cars.** Cars roll off the assembly line and drive away. The factory keeps the tools; it does not garage finished cars.
+**agent-maker is the factory. Agents are the cars.** Cars roll off the assembly line and drive away. The factory keeps the assembly tools; it does not garage finished cars.
 
-Agents produced by this factory are **portable bundles** — self-contained directories of `agent.yaml`, `system-prompt.md`, `skills/`, `scripts/`, `hooks/`, `mcp/`, and `memory/`. They live at user-chosen paths, run on any machine with claude-code, and have **no dependency** on this factory or on its internal tooling.
+Agents produced by this factory are **portable bundles** — self-contained directories of `agent.yaml`, `system-prompt.md`, `skills/`, `scripts/`, `hooks/`, `mcp/`, and `memory/`. They live at user-chosen paths, run on any machine with claude-code, and have **no dependency** on this factory or its internal tooling.
+
+## The problem this solves
+
+Building a Claude agent is easy. Building a *reliable* Claude agent is hard — the system prompt is a moving target, the skills are interdependent, and there's no built-in feedback loop that improves the agent on its own. Most teams iterate by hand: tweak the prompt, run it on a few examples, eyeball the output, repeat. That's slow, inconsistent, and doesn't scale to many agents.
+
+agent-maker treats agent construction like factory work: separate the **artifact** (the agent bundle), the **specification** (the task and grader), and the **process** (the tuning loop). The factory iterates automatically. You can produce one tuned agent or many — each evaluated against a held-out test set so you know if it actually got better.
 
 ## The triadic loop
-
-The core workflow is a closed loop across three roles:
 
 ```
    ┌────────────────────────────────────────────────────┐
@@ -36,6 +42,29 @@ The core workflow is a closed loop across three roles:
 
 Tuning continues until target_score, max_iters, budget cap, or score plateau.
 
+## How tuning actually works
+
+One iteration of `am tune <agent> --task <task>`:
+
+1. **Stage** — the AUT, grader, and tuner are spawned as three separate avatars (claude-code processes), each with its own bundle, system prompt, and tool permissions. The AUT gets the task's `instructions` plus read-only access to `artifacts/`.
+2. **Run** — the AUT works the task, writing to `output/`. Its full transcript is captured to `runs/.../iter-NN/transcript.jsonl`.
+3. **Grade** — the grader avatar is given the task, `expected/`, and the AUT's `output/` — but NOT the transcript. It scores the output as JSON: `{score, pass, issues[], rationale}`.
+4. **Decide** — if `score >= target_score`, exit. If the budget cap or max iterations are hit, exit. If the score plateaus across 3 iterations, exit.
+5. **Tune** — the tuner avatar is given the AUT's transcript, the grader's feedback, and the agent's source bundle inside a `git worktree`. It can edit only the scopes in `allow_edit` (default: `prompt, skills, scripts`). It emits a unified diff with a one-line rationale.
+6. **Apply** — the factory verifies the diff with `git apply --check`, applies it back to the agent's home path, and the next iteration begins.
+
+Every iteration is also evaluated on the holdout split (the tuner never sees these scores). If train score rises while holdout falls, the tuner is overfitting and the loop pauses for review.
+
+## Design principles
+
+A few constraints are load-bearing — they're enforced by the CLI, not just conventions:
+
+- **Factory and car are separated.** Agents are bundles at user-chosen paths, never inside `agent-maker/`. The factory operates on agents by path.
+- **Agents ship bare.** The avatar overlay contains only the agent's own files. No factory tooling leaks into a running agent. What runs locally is what ships.
+- **Graders never see transcripts.** Only the task + expected + output. Prevents the grader from being charmed by the AUT's reasoning.
+- **Tuner is sandboxed.** Two layers: `settings.json` permission denies plus a `git worktree` rooted at the agent's path. Tuner output must pass `git apply --check` before being applied.
+- **Overfit detection is built in.** The holdout split's score is reported every iteration but invisible to the tuner.
+
 ## The factory (this repo)
 
 ```
@@ -50,8 +79,6 @@ agent-maker/
 ├── jbang-catalog.json
 └── (drom-flow files: CLAUDE.md, .claude/, context/, drom-plans/, workflows/, scripts/)
 ```
-
-drom-flow is installed here as the factory's consistency layer — closed-loop, orchestrate.sh, plans, hooks, skills. **drom-flow is NOT shipped with the agents the factory produces.**
 
 ## What an agent bundle looks like (the car)
 
@@ -111,9 +138,32 @@ See `docs/schemas/` for the `agent.yaml`, `task.yaml`, and grade JSON contracts.
 ## Defaults
 
 - Model: **opus** for all three roles (AUT, Grader, Tuner). Override per agent in `agent.yaml`.
-- Java: **17** (via jbang; only matters at the factory side — agents are language-agnostic bundles).
-- Tuner edit scope: **`prompt, skills, scripts`** (Python and shell scripts included). Wider scopes (`mcp`, `hooks`, `all`) require explicit `--allow-edit`.
+- Java: **17** (via jbang; only relevant at the factory side — agents are language-agnostic).
+- Tuner edit scope: **`prompt, skills, scripts`** (Python and shell included). Wider scopes (`mcp`, `hooks`, `all`) require explicit `--allow-edit`.
+
+## Roadmap
+
+Build is chapter-based in [`drom-plans/build-agent-maker.md`](drom-plans/build-agent-maker.md):
+
+1. **Foundations** — schemas, layout, jbang catalog, decisions log ✅
+2. **`am new`** — scaffolding command + 4 templates + working sample
+3. **`am avatar`** — bare impersonation overlay (interactive + headless)
+4. **`am run`** — one-shot headless AUT run + grade
+5. **`am tune`** — the full triadic closed loop
+6. **`am factory` + `am publish`** — batch tuning + zip export
+
+## Development
+
+The factory uses [drom-flow](https://github.com/drompincen/drom-flow) as its consistency layer — closed-loop spec, `orchestrate.sh`, plan tracking, parallel-agent conventions, lifecycle hooks. drom-flow lives in this repo's `CLAUDE.md`, `.claude/`, `context/`, `drom-plans/`, `workflows/`, and `scripts/orchestrate.sh`.
+
+**drom-flow stays in the factory.** It is intentionally NOT shipped with the agents the factory produces — agents must remain portable and dependency-free.
+
+Architecture decisions are logged in [`context/DECISIONS.md`](context/DECISIONS.md).
+
+## License
+
+[MIT](LICENSE)
 
 ## Status
 
-Pre-alpha. Build plan: `drom-plans/build-agent-maker.md`.
+Pre-alpha. Chapter 1 complete; Chapter 2 (`am new`) next.

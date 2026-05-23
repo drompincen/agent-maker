@@ -1,0 +1,10 @@
+.claude/.state/
+.claude/edit-log.jsonl
+.mcp.json
+.claude/.javaducker/
+setup-backup/
+
+# agent-maker
+dist/
+runs/.avatars/
+

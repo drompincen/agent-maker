@@ -1,0 +1,11 @@
+{
+  "catalog": {
+    "description": "agent-maker — factory for portable claude-code agents",
+    "aliases": {
+      "am": {
+        "script-ref": "cli/Am.java",
+        "description": "Run the agent-maker CLI (new | avatar | run | tune | factory | publish)"
+      }
+    }
+  }
+}

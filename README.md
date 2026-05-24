@@ -122,6 +122,10 @@ am tune ~/my-agents/my-bot --task ./tasks/some-task --max-iters 10 --target-scor
 am publish ~/my-agents/my-bot --to ~/dist/my-bot-0.1.0.zip
 ```
 
+## Full runbook
+
+For the end-to-end recipe — scaffold an agent, tune it, package it, deploy it on a clean target machine — see **[docs/SHIPPING.md](docs/SHIPPING.md)**.
+
 ## Commands
 
 | Command | Purpose |

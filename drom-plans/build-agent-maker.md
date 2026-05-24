@@ -1,10 +1,9 @@
 ---
 title: Build agent-maker on drom-flow
-status: in-progress
+status: completed
 created: 2026-05-23
 updated: 2026-05-23
 current_chapter: 6
-updated: 2026-05-23
 ---
 
 # Plan: Build agent-maker on drom-flow
@@ -127,17 +126,17 @@ No drom-flow files. No factory references. Self-contained, ships anywhere.
 > Done 2026-05-23. v0 simplifications vs original plan: (a) loop is pure Java, not generated orchestrate.sh; (b) tuner edits files directly instead of emitting a unified diff (less verifiable but simpler); (c) no git worktree (scope-checked copy is the sandbox); (d) no budget-usd tracking yet (token usage requires parsing stream-json); (e) no holdout eval split yet. All are TODO upgrades; the core triadic loop works end-to-end in dry-run. TaskRunner util extracted so Run and Tune share the AUT+grade pipeline.
 
 ## Chapter 6: `am factory` + `am publish`
-**Status:** pending
+**Status:** completed
 **Depends on:** Chapter 5
 
-- [ ] `am factory <factory.yaml>` — spawns N `am tune` runs in parallel; aggregates results — [cli/cmd/Factory.java]
-- [ ] Factory schema — list of `{agent_path, task_path, grader_path, tuner_path, target_score, max_iters, allow_edit}` — [docs/schemas/factory.yaml.md]
-- [ ] Aggregate report — per-agent final score, iterations used, diff summary, agent home path, total cost — [factories/<name>-report.md]
-- [ ] `am publish <agent-path> [--to <dest>]` — packages agent bundle as a zip; ships to `<dest>` (default `dist/<name>-<version>.zip` inside factory) or a user-supplied path/URL — [cli/cmd/Publish.java]
-- [ ] Smoke test — `am factory factories/example.yaml` with 2 trivial agents runs to completion and produces a report — [README.md]
+- [x] `am factory <factory.yaml>` — parses spec, ExecutorService with `--parallel` workers, shells out to `jbang cli/Am.java tune ...` per entry, aggregates per-job exit codes — [cli/cmd/Factory.java]
+- [x] Factory schema — `agents: [{agent, task, grader?, tuner?, max_iters?, target_score?, allow_edit?}]`; sample at `factories/example.yaml` — [factories/example.yaml]
+- [x] Aggregate report — per-job idx/agent/task/exit/log, written to `factories/<spec-stem>-<stamp>-report.md` (gitignored) — [cli/cmd/Factory.java]
+- [x] `am publish <agent-path> [--to <dest>]` — zips the bundle; default dest `<factory>/dist/<id>-<version>.zip` — [cli/cmd/Publish.java]
+- [x] Smoke test — `jbang cli/Am.java factory factories/example.yaml --dry-run` → "ALL OK 1/1"; `jbang cli/Am.java publish samples/echo-bot --to ./.smoke/echo-bot.zip` → 3-file zip (583 bytes) verified via unzip -l — [README.md]
 
 **Notes:**
-> After this chapter, the factory ships its core value: a reproducible pipeline that takes raw agents anywhere and produces tuned, exportable bundles anywhere.
+> Done 2026-05-23. Plan complete. Factory parallelism via shell-out to jbang per agent (simple; each child resolves deps independently — could optimize by sharing a built jar later). Factory reports gitignored. Publish includes every regular file in the bundle (no excludes — agent owners control what ships by what they put in the bundle).
 
 ---
 

@@ -9,3 +9,4 @@ dist/
 .smoke/
 runs/*
 !runs/.gitkeep
+factories/*-report.md

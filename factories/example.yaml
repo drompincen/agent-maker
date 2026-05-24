@@ -1,0 +1,7 @@
+version: 0.1.0
+agents:
+  - agent: samples/echo-bot
+    task: samples/tasks/say-hi
+    max_iters: 1
+    target_score: 1.0
+    allow_edit: prompt,skills

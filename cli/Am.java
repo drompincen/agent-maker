@@ -1,12 +1,15 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //JAVA 17
 //DEPS info.picocli:picocli:4.7.6
+//DEPS org.yaml:snakeyaml:2.3
+//DEPS com.fasterxml.jackson.core:jackson-databind:2.17.2
 //SOURCES cmd/New.java
 //SOURCES cmd/Avatar.java
 //SOURCES cmd/Run.java
 //SOURCES cmd/Tune.java
 //SOURCES cmd/Factory.java
 //SOURCES cmd/Publish.java
+//SOURCES util/Bundle.java
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;

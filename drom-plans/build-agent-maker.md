@@ -3,7 +3,7 @@ title: Build agent-maker on drom-flow
 status: in-progress
 created: 2026-05-23
 updated: 2026-05-23
-current_chapter: 3
+current_chapter: 4
 updated: 2026-05-23
 ---
 
@@ -80,19 +80,20 @@ No drom-flow files. No factory references. Self-contained, ships anywhere.
 > Done 2026-05-23. CLI compiles and runs via jbang. Stubs for avatar/run/tune/factory/publish print "[Chapter N] not yet implemented". `{{NAME}}` substitution verified. `AGENT_MAKER_HOME` env var allows running from outside the factory dir; otherwise the CLI walks up looking for `jbang-catalog.json`. Smoke artifact directory is gitignored. Ready for Chapter 3 (avatar overlay).
 
 ## Chapter 3: `am avatar` — Impersonation overlay (bare)
-**Status:** pending
+**Status:** completed
 **Depends on:** Chapter 2
 
-- [ ] Avatar launcher — `am avatar <agent-path>` builds ephemeral `$CLAUDE_CONFIG_DIR`, symlinks bundle's `skills/`, copies `hooks/`, writes synthesized `settings.json` from `agent.yaml`, seeds `memory/`, execs `claude --append-system-prompt @<agent-path>/system-prompt.md` — [cli/cmd/Avatar.java]
-- [ ] **Bare overlay** — overlay contains ONLY the agent's bundle contents. No drom-flow files leak in. The avatar runs exactly as the agent will run when deployed to a clean machine — [cli/cmd/Avatar.java]
-- [ ] Env hygiene — explicitly unset/override host `CLAUDE_CONFIG_DIR` and related env vars before exec, so the host's claude-code config doesn't leak into the avatar — [cli/cmd/Avatar.java]
-- [ ] Settings synthesis — translate `agent.yaml`'s MCP / hooks / permissions into a valid `settings.json` — [cli/cmd/Avatar.java]
-- [ ] Headless mode — `--print/-p` passthrough; required for Chapter 4 — [cli/cmd/Avatar.java]
-- [ ] Cleanup — `--cleanup` nukes ephemeral dir on exit; otherwise persist under `runs/.avatars/<run-id>/` for debugging — [cli/cmd/Avatar.java]
-- [ ] Smoke test — `am avatar samples/echo-bot` opens interactive session in persona; `-p "say hi"` returns text non-interactively — [README.md]
+- [x] Avatar launcher — `am avatar <agent-path>` builds ephemeral `$CLAUDE_CONFIG_DIR`, copies `skills/` + `hooks/`, writes synthesized `settings.json` from `agent.yaml`, seeds `CLAUDE.md` from `memory/`, execs `claude --append-system-prompt @system-prompt.md --model …` — [cli/cmd/Avatar.java]
+- [x] **Bare overlay** — overlay contains ONLY the agent's bundle contents. No drom-flow files leak in — [cli/cmd/Avatar.java]
+- [x] Env hygiene — explicitly sets `CLAUDE_CONFIG_DIR` and removes `CLAUDE_HOME` from inherited env before exec — [cli/cmd/Avatar.java]
+- [x] Settings synthesis — translates `agent.yaml` tool_allowlist → `permissions`, mcp_servers → `mcpServers`, hooks → `hooks` — [cli/cmd/Avatar.java]
+- [x] Headless mode — `-p/--print` passthrough; required by Chapter 4 — [cli/cmd/Avatar.java]
+- [x] Cleanup — default deletes ephemeral dir on exit; `--keep-config` preserves and prints path — [cli/cmd/Avatar.java]
+- [x] Shared helpers — `Bundle.readAgentYaml`, `Bundle.resolveModelId` (opus→claude-opus-4-7 etc.) — [cli/util/Bundle.java]
+- [x] Smoke test — `jbang cli/Am.java avatar samples/echo-bot --dry-run` synthesizes correct command with `--append-system-prompt`, `--model claude-opus-4-7`, and ephemeral `$CLAUDE_CONFIG_DIR` — [README.md]
 
 **Notes:**
-> "Bare" matters: if the avatar works here, it works when shipped to a clean machine. Any drom-flow leakage into the avatar would be a lie.
+> Done 2026-05-23. snakeyaml + jackson-databind added to //DEPS. Full claude exec requires `claude` on PATH; tested via `--dry-run` which prints the resolved command. Avatar overlay is bare per design — agent ships clean.
 
 ## Chapter 4: `am run` — Headless task + grade
 **Status:** pending

@@ -3,7 +3,8 @@ title: Build agent-maker on drom-flow
 status: in-progress
 created: 2026-05-23
 updated: 2026-05-23
-current_chapter: 2
+current_chapter: 3
+updated: 2026-05-23
 ---
 
 # Plan: Build agent-maker on drom-flow
@@ -61,22 +62,22 @@ No drom-flow files. No factory references. Self-contained, ships anywhere.
 > Done 2026-05-23 in one parallel batch. Skeleton dirs in place, README sets the factory-vs-car framing, all three schemas (`agent.yaml`, `task.yaml`, grade contract) documented, jbang catalog exposes `am`. Ready for Chapter 2.
 
 ## Chapter 2: `am new` — Scaffolding
-**Status:** pending
+**Status:** completed
 **Depends on:** Chapter 1
 
-- [ ] CLI dispatcher with picocli — `am <subcommand>` — [cli/Am.java]
-- [ ] `am new agent <name> [--at <path>]` — scaffolds agent bundle at `<path>` (default `./<name>` in CWD, **NOT inside the factory**); copies from `templates/agent/` with name substitution — [cli/cmd/New.java]
-- [ ] `am new task <name> [--at <path>]` — defaults `./<name>` in CWD (tasks are typically user-owned) — [cli/cmd/New.java]
-- [ ] `am new grader|tuner <name>` — defaults to factory's `graders/<name>` or `tuners/<name>` (factory equipment); `--at` to override — [cli/cmd/New.java]
-- [ ] Write agent template — minimal `agent.yaml` (`model: opus`), `system-prompt.md`, one stub skill, `scripts/.gitkeep`, empty `memory/MEMORY.md` — [templates/agent/]
-- [ ] Write grader template — `agent.yaml` + system prompt baking the grade JSON contract — [templates/grader/]
-- [ ] Write task template — `task.yaml`, `artifacts/.gitkeep`, `expected/.gitkeep`, `splits.yaml` — [templates/task/]
-- [ ] Write tuner template — `agent.yaml` with read+edit-only-target permission, system prompt covering minimal-diff philosophy and `prompt,skills,scripts` default edit scope — [templates/tuner/]
-- [ ] Generate working samples — `samples/echo-bot/`, `samples/tasks/say-hi/`, and built-in `graders/contains-hello/` — to prove templates end-to-end — [samples/, graders/contains-hello/]
-- [ ] Smoke test — `am new agent foo --at /tmp/foo` produces expected tree outside the factory — [README.md]
+- [x] CLI dispatcher with picocli — `am <subcommand>` — [cli/Am.java]
+- [x] `am new agent <name> [--at <path>]` — scaffolds agent bundle at `<path>` (default `./<name>` in CWD, **NOT inside the factory**); copies from `templates/agent/` with `{{NAME}}` substitution — [cli/cmd/New.java]
+- [x] `am new task <name> [--at <path>]` — defaults `./<name>` in CWD — [cli/cmd/New.java]
+- [x] `am new grader|tuner <name>` — defaults to factory's `graders/<name>` or `tuners/<name>` (factory equipment); `--at` overrides — [cli/cmd/New.java]
+- [x] Write agent template — `agent.yaml` (model: opus), `system-prompt.md`, empty `memory/MEMORY.md`, .gitkeep for skills/scripts/hooks/mcp — [templates/agent/]
+- [x] Write grader template — `agent.yaml` + system prompt baking the grade JSON contract — [templates/grader/]
+- [x] Write task template — `task.yaml`, `artifacts/.gitkeep`, `expected/.gitkeep`, `splits.yaml` — [templates/task/]
+- [x] Write tuner template — `agent.yaml` with read+edit permission, system prompt covering minimal-diff philosophy + unified-diff output contract — [templates/tuner/]
+- [x] Generate working samples — `samples/echo-bot/`, `samples/tasks/say-hi/`, built-in `graders/contains-hello/` — [samples/, graders/contains-hello/]
+- [x] Smoke test — `jbang cli/Am.java new agent foo --at ./.smoke/foo` produced expected tree; `am --help` shows all 6 subcommands — [README.md]
 
 **Notes:**
-> Agents land OUTSIDE the factory by default. Graders/tuners land INSIDE (factory equipment).
+> Done 2026-05-23. CLI compiles and runs via jbang. Stubs for avatar/run/tune/factory/publish print "[Chapter N] not yet implemented". `{{NAME}}` substitution verified. `AGENT_MAKER_HOME` env var allows running from outside the factory dir; otherwise the CLI walks up looking for `jbang-catalog.json`. Smoke artifact directory is gitignored. Ready for Chapter 3 (avatar overlay).
 
 ## Chapter 3: `am avatar` — Impersonation overlay (bare)
 **Status:** pending

@@ -1,0 +1,17 @@
+id: {{NAME}}
+version: 0.1.0
+description: |
+  TODO: describe what this task asks the AUT to do.
+
+instructions: |
+  TODO: write the instructions given verbatim to the AUT.
+  Reference inputs by relative path: artifacts/<file>.
+  Write outputs to output/<file>.
+
+artifacts_dir: artifacts/
+expected_dir: expected/
+
+grader: ../graders/REPLACE-ME
+target_score: 0.9
+
+timeout_seconds: 300

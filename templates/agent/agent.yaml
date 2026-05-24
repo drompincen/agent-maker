@@ -1,0 +1,22 @@
+id: {{NAME}}
+version: 0.1.0
+description: |
+  TODO: describe what {{NAME}} does.
+
+model: opus
+
+allow_edit:
+  - prompt
+  - skills
+  - scripts
+
+tool_allowlist:
+  allow:
+    - Read
+    - Write
+    - Edit
+    - Bash
+  deny:
+    - Bash(rm -rf *)
+
+memory_seed: memory/MEMORY.md

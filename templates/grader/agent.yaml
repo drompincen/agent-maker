@@ -1,0 +1,19 @@
+id: {{NAME}}
+version: 0.1.0
+description: |
+  Grader: {{NAME}}. Scores AUT output against expected criteria.
+
+model: opus
+
+allow_edit:
+  - prompt
+  - skills
+
+tool_allowlist:
+  allow:
+    - Read
+    - Write
+  deny:
+    - Bash(*)
+
+memory_seed: memory/MEMORY.md

@@ -1,0 +1,15 @@
+id: say-hi
+version: 0.1.0
+description: |
+  Smallest possible task — ask the AUT to greet, then check the greeting contains "hello".
+
+instructions: |
+  Write a short, friendly greeting to output/response.txt. The greeting must contain the word "hello".
+
+artifacts_dir: artifacts/
+expected_dir: expected/
+
+grader: ../../../graders/contains-hello
+target_score: 1.0
+
+timeout_seconds: 60

@@ -1,0 +1,18 @@
+id: contains-hello
+version: 0.1.0
+description: |
+  Built-in grader: passes when AUT's output/response.txt contains "hello" (case-insensitive) and is under 200 chars.
+
+model: opus
+
+allow_edit:
+  - prompt
+
+tool_allowlist:
+  allow:
+    - Read
+    - Write
+  deny:
+    - Bash(*)
+
+memory_seed: memory/MEMORY.md

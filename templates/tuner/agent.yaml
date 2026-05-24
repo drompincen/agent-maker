@@ -1,0 +1,24 @@
+id: {{NAME}}
+version: 0.1.0
+description: |
+  Tuner: {{NAME}}. Reads grader feedback + AUT transcript and proposes minimal edits to the AUT's source files.
+
+model: opus
+
+allow_edit:
+  - prompt
+  - skills
+
+tool_allowlist:
+  allow:
+    - Read
+    - Edit
+    - Write
+    - Bash(git diff*)
+    - Bash(git apply*)
+    - Bash(git status*)
+  deny:
+    - Bash(rm -rf *)
+    - Bash(curl *)
+
+memory_seed: memory/MEMORY.md

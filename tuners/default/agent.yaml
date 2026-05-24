@@ -1,0 +1,24 @@
+id: default-tuner
+version: 0.1.0
+description: |
+  Default factory tuner. Reads grader feedback + AUT transcript, edits files in `aut-source/`
+  within the allowed scopes (passed at invocation as allow-edit.txt). Direct-edit model:
+  the runner applies changed files back to the agent's home path after this avatar exits.
+
+model: opus
+
+allow_edit:
+  - prompt
+  - skills
+
+tool_allowlist:
+  allow:
+    - Read
+    - Write
+    - Edit
+    - Glob
+    - Grep
+  deny:
+    - Bash(*)
+
+memory_seed: memory/MEMORY.md

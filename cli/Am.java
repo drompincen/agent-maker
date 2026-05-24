@@ -11,6 +11,7 @@
 //SOURCES cmd/Publish.java
 //SOURCES util/Bundle.java
 //SOURCES util/AvatarLauncher.java
+//SOURCES util/TaskRunner.java
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;

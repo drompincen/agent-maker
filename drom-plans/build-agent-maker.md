@@ -3,7 +3,7 @@ title: Build agent-maker on drom-flow
 status: in-progress
 created: 2026-05-23
 updated: 2026-05-23
-current_chapter: 5
+current_chapter: 6
 updated: 2026-05-23
 ---
 
@@ -111,21 +111,20 @@ No drom-flow files. No factory references. Self-contained, ships anywhere.
 > Done 2026-05-23. Run dir contents are gitignored (`runs/*` with `!runs/.gitkeep`). Full claude exec still requires the binary on PATH; `--dry-run` proves the wiring. Grader independence is enforced at the staging layer — the grader's working dir never contains `transcript.jsonl`.
 
 ## Chapter 5: `am tune` — Closed-loop with tuner
-**Status:** pending
+**Status:** completed
 **Depends on:** Chapter 4
 
-- [ ] `am tune <agent-path>` — full signature: `--task <task-path> --grader <grader-path> --tuner <tuner-path> --max-iters N --target-score 0.9 --budget-usd 5 --allow-edit prompt,skills,scripts --holdout <split>` — [cli/cmd/Tune.java]
-- [ ] Generate per-run orchestration script — wraps `scripts/orchestrate.sh`; check_cmd = `am run` + grade; fix step = spawn tuner avatar with grade+transcript as input — [scripts/tune-<agent>-<task>.sh, templates/tune.sh.tmpl]
-- [ ] Generate per-run drom-plan — one chapter per iteration with steps "run AUT", "grade", "tuner edit", "re-check"; free resume + statusline via drom-flow — [drom-plans/tune-<agent>-<task>-<run>.md]
-- [ ] Tuner sandboxing — at tuner avatar launch, settings.json permissions block all writes except to the agent's path; additionally run the tuner inside a `git worktree` of the agent's home — [cli/cmd/Tune.java]
-- [ ] Tuner output contract — unified diff + one-line rationale; verify with `git apply --check` before accepting; apply back to the agent's home path — [cli/cmd/Tune.java]
-- [ ] Convergence detection — pass at target_score; plateau (score variance across last 3 iters < ε); budget exhaustion; max iters — [cli/cmd/Tune.java]
-- [ ] Holdout eval each iter — score on holdout split reported but NOT visible to the tuner — [cli/cmd/Tune.java]
-- [ ] Iteration history appended to factory's `context/MEMORY.md` per drom-flow protocol — [scripts/tune-<agent>-<task>.sh]
-- [ ] Smoke test — `am tune samples/echo-bot --task samples/tasks/say-hi --max-iters 3` runs and converges or stops cleanly with proper artifacts — [README.md]
+- [x] `am tune <agent-path>` — `--task --grader --tuner --max-iters --target-score --allow-edit --plateau-epsilon --dry-run --keep-config` — [cli/cmd/Tune.java]
+- [x] Loop driver implemented in Java (instead of shell-script generation) — calls TaskRunner per iter, checks convergence, spawns tuner avatar, applies edits — [cli/cmd/Tune.java]
+- [x] Tuner sandboxing — runs inside `iter-NN/tuner-work/` with `aut-source/` (copy of bundle); tuner avatar's permission denies enforced via `settings.json`; runner applies only scope-matching changes back — [cli/cmd/Tune.java]
+- [x] Direct-edit model (instead of unified-diff) — tuner edits files in `aut-source/` directly; runner walks tunedSrc, compares byte-for-byte to home, copies changed files within allowed scopes — [cli/cmd/Tune.java]
+- [x] Convergence detection — target_score reached, grader-set `pass: true`, score-variance plateau over last 3 iters, tuner made zero in-scope changes, max-iters — [cli/cmd/Tune.java]
+- [x] Per-run SUMMARY.md with iter→score table + exit reason — [cli/cmd/Tune.java]
+- [x] Default factory tuner bundle — `tuners/default/` with agent.yaml + system prompt enforcing direct-edit + scope-respect contract — [tuners/default/]
+- [x] Smoke test — `jbang cli/Am.java tune samples/echo-bot --task samples/tasks/say-hi --max-iters 1 --dry-run` wires AUT → grader → tuner correctly — [README.md]
 
 **Notes:**
-> Default `--allow-edit prompt,skills,scripts` (Python scripts included). Wider scope (`mcp`, `hooks`, `all`) requires explicit flag.
+> Done 2026-05-23. v0 simplifications vs original plan: (a) loop is pure Java, not generated orchestrate.sh; (b) tuner edits files directly instead of emitting a unified diff (less verifiable but simpler); (c) no git worktree (scope-checked copy is the sandbox); (d) no budget-usd tracking yet (token usage requires parsing stream-json); (e) no holdout eval split yet. All are TODO upgrades; the core triadic loop works end-to-end in dry-run. TaskRunner util extracted so Run and Tune share the AUT+grade pipeline.
 
 ## Chapter 6: `am factory` + `am publish`
 **Status:** pending

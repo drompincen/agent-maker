@@ -3,7 +3,7 @@ title: Build agent-maker on drom-flow
 status: in-progress
 created: 2026-05-23
 updated: 2026-05-23
-current_chapter: 4
+current_chapter: 5
 updated: 2026-05-23
 ---
 
@@ -96,18 +96,19 @@ No drom-flow files. No factory references. Self-contained, ships anywhere.
 > Done 2026-05-23. snakeyaml + jackson-databind added to //DEPS. Full claude exec requires `claude` on PATH; tested via `--dry-run` which prints the resolved command. Avatar overlay is bare per design — agent ships clean.
 
 ## Chapter 4: `am run` — Headless task + grade
-**Status:** pending
+**Status:** completed
 **Depends on:** Chapter 3
 
-- [ ] `am run <agent-path> --task <task-path>` — spawns AUT avatar headless on the task's instructions+artifacts, captures transcript+output, then spawns grader avatar to score — [cli/cmd/Run.java]
-- [ ] Output capture — pipe `claude -p` JSON output; persist `transcript.jsonl`, `output/`, `grade.json` under `runs/<task-name>/<agent-name>/<run-id>/iter-1/` — [cli/cmd/Run.java]
-- [ ] Grader invocation — feed grader ONLY the task + expected + AUT's output (**NOT** the AUT's transcript). Grader is itself an avatar — `am avatar <grader-path> -p ...` — [cli/cmd/Run.java]
-- [ ] Validate `grade.json` against the contract from Chapter 1; fail loudly on contract violation — [cli/cmd/Run.java]
-- [ ] Run-key collision handling — hash the absolute agent path into the run key so two agents with same name in different paths don't collide — [cli/cmd/Run.java]
-- [ ] Smoke test — `am run samples/echo-bot --task samples/tasks/say-hi` produces a `runs/` directory with all three artifacts and a sensible score — [README.md]
+- [x] `am run <agent-path> --task <task-path>` — stages AUT in `aut-work/` (with `artifacts/` + `output/`), spawns AUT via AvatarLauncher (`-p` mode with `--output-format stream-json`), captures transcript, then stages + runs grader — [cli/cmd/Run.java]
+- [x] Output capture — `transcript.jsonl` + `aut.stderr.log` for AUT; `grader-transcript.jsonl` + `grader.stderr.log` for grader; `output/` snapshot; `input.json` of the invocation — under `runs/<task>/<agent-key>/<run-id>/iter-1/` — [cli/cmd/Run.java]
+- [x] Grader invocation — grader receives `instructions.md`, `expected/`, and `aut-output/` ONLY (never the AUT's transcript) — [cli/cmd/Run.java]
+- [x] Validate `grade.json` against the contract — score number in `[0,1]`, pass boolean, issues list, rationale required — [cli/cmd/Run.java]
+- [x] Run-key collision handling — SHA-256(absolute agent path) prefix appended to agent name → `<agent-name>-<8hex>` — [cli/cmd/Run.java]
+- [x] Refactor — AvatarLauncher extracted to util/ so Avatar and Run share launch logic — [cli/util/AvatarLauncher.java]
+- [x] Smoke test — `jbang cli/Am.java run samples/echo-bot --task samples/tasks/say-hi --dry-run` synthesizes both AUT and grader commands; creates correct `runs/say-hi/echo-bot-<hash>/<stamp>/iter-1/` layout — [README.md]
 
 **Notes:**
-> Grader independence is load-bearing. Never let the grader see the AUT's reasoning.
+> Done 2026-05-23. Run dir contents are gitignored (`runs/*` with `!runs/.gitkeep`). Full claude exec still requires the binary on PATH; `--dry-run` proves the wiring. Grader independence is enforced at the staging layer — the grader's working dir never contains `transcript.jsonl`.
 
 ## Chapter 5: `am tune` — Closed-loop with tuner
 **Status:** pending

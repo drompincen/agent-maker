@@ -6,6 +6,6 @@ setup-backup/
 
 # agent-maker
 dist/
-runs/.avatars/
-
 .smoke/
+runs/*
+!runs/.gitkeep

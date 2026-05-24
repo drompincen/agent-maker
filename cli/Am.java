@@ -10,6 +10,7 @@
 //SOURCES cmd/Factory.java
 //SOURCES cmd/Publish.java
 //SOURCES util/Bundle.java
+//SOURCES util/AvatarLauncher.java
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
